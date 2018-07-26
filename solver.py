@@ -97,20 +97,21 @@ class Solver(object):
     def rec_loss(self, x1, x2, mode='pho'):
         assert mode in ['pho', 'skt']
         n = x1.size(0)
-        if mode == 'pho':
-        #if True:
+        if mode == 'pho' and self.config.ablation_recon_kl:
             return torch.mean(torch.abs(x1-x2))
         elif mode == 'skt':
             eps = 1e-10
             loss = (x1-x2) * (torch.log(x1 + eps)-torch.log(x2 + eps))
-            loss += torch.mean(torch.abs(x1-x2))
-            #v  = torch.sum(x1).data[0]
-            return torch.mean(loss)
+            #loss += (x1-x2).abs().mean()
+            return loss.mean()
 
     def cons_loss(self, z1, z2):
-        l2_loss = torch.sum((z1-z2)**2, dim=1).mean()
-        angle = torch.sum(z1*z2, dim=1) / (torch.norm(z1, p=2, dim=1) * torch.norm(z2, p=2, dim=1))
-        angle_loss = 1 - (angle).mean()
+        l2_loss = (z1-z2).sum(dim=1).mean() if self.config.ablation_const_l2 else 0
+        if self.config.alation_const_angle:
+            angle = torch.sum(z1*z2, dim=1) / (torch.norm(z1, p=2, dim=1) * torch.norm(z2, p=2, dim=1))
+            angle_loss = 1 - (angle).mean()
+        else:
+            angle_loss = 0
         return l2_loss,  angle_loss
 
     def shuffle(self, x):

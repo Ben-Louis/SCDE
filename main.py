@@ -50,6 +50,11 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_triplet', type=float, default=1)
     parser.add_argument('--gen_triplet', type=str2bool, default=False)
 
+    # ablation stud for rebuttal
+    parser.add_argument('--ablation_recon_kl', type=str2bool, default=True)
+    parser.add_argument('--ablation_const_l2', type=str2bool, default=True)
+    parser.add_argument('--ablation_const_angle', type=str2bool, default=True)
+
     # optimizor
     parser.add_argument('--g_lr', type=float, default=0.0001)
     parser.add_argument('--d_lr', type=float, default=0.0001)
