@@ -292,7 +292,8 @@ class Solver(object):
 
         if self.config.pretrained_model is None:
             start_epoch = 0
-            os.remove(self.config.log_file)
+            if os.path.exists(self.config.log_file):
+                os.remove(self.config.log_file)
         else:
             self.load_pretrained_model()
             start_epoch = eval(self.config.pretrained_model)
