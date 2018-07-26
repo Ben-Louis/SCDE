@@ -233,7 +233,7 @@ class Solver(object):
         loss['L_gan(dis/real)[pho]'] = real_dis_pho.item()
         loss['L_gan(dis/real)[skt]'] = real_dis_skt.item()
         loss['L_gan(dis/fake)[pho]'] = fake_dis_pho.item()
-        loss['L_gan(dis/real)[skt]'] = fake_dis_skt.item()
+        loss['L_gan(dis/fake)[skt]'] = fake_dis_skt.item()
         loss['L_gan(gp)[pho]'] = gp_pho.item()
         loss['L_gan(gp)[skt]'] = gp_skt.item()
 
@@ -331,9 +331,14 @@ class Solver(object):
                 if (i+1) % self.config.log_step == 0:
                     et = time.time() - start_time
                     et = str(et)[:-12]
-                    log = "Elapsed [{}], Epoch [{}/{}], Iteration [{}/{}]".format(et, e+1, num_epochs, i+1, num_iters)
-                    for tag, value in loss.items():
-                        log += ", {}: {:.4f}".format(tag, value)
+                    log = "Elapsed [{}], Epoch [{}/{}], Iteration [{}/{}]\n".format(et, e+1, num_epochs, i+1, num_iters)
+                    log += 'L_recon: ' + '[pho]:{:.4f}, [skt]:{:.4f}\n'.format(loss['L_recon[pho]'], loss['L_recon[skt]'])
+                    log += 'L_const: ' + '[l2]:{:.4f}, [angle]:{:.4f}\n'.format(loss['L_const(l2)'], loss['L_const(angle)'])
+                    log += 'L_gan [pho]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
+                        loss['L_gan(dis/real)[pho]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[pho]'],  loss['L_gan(gp)[pho]'])
+                    log += 'L_gan [skt]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
+                        loss['L_gan(dis/real)[skt]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[skt]'],  loss['L_gan(gp)[skt]'])
+
                     print(log)  
 
                     # write loss into log file
