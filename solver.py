@@ -109,12 +109,13 @@ class Solver(object):
             return loss.mean()
 
     def cons_loss(self, z1, z2):
-        l2_loss = (z1-z2).pow(2).sum(dim=1).mean() if self.config.ablation_const_l2 else 0
-        if self.config.ablation_const_angle:
-            angle = torch.sum(z1*z2, dim=1) / (torch.norm(z1, p=2, dim=1) * torch.norm(z2, p=2, dim=1))
-            angle_loss = 1 - (angle).mean()
-        else:
-            angle_loss = 0
+        l2_loss = (z1-z2).pow(2).sum(dim=1).mean()
+        if not self.config.ablation_const_l2:
+            l2_loss = l2_loss.detach()
+        angle = torch.sum(z1*z2, dim=1) / (torch.norm(z1, p=2, dim=1) * torch.norm(z2, p=2, dim=1))
+        angle_loss = 1 - (angle).mean()
+        if not self.config.ablation_const_angle:
+            angle_loss = angle_loss.detach()
         return l2_loss,  angle_loss
 
     def shuffle(self, x):
@@ -168,8 +169,8 @@ class Solver(object):
 
         loss['L_recon[pho]'] = loss_rec_pho.item()
         loss['L_recon[skt]'] = loss_rec_skt.item()
-        loss['L_const(l2)'] = l2_loss if isinstance(l2_loss, int) else l2_loss.item()
-        loss['L_const(angle)'] = angle_loss if isinstance(angle_loss, int) else angle_loss.item()
+        loss['L_const(l2)'] = l2_loss.item()
+        loss['L_const(angle)'] = angle_loss.item()
 
     def train_IR(self, skts, phos, loss):
 
