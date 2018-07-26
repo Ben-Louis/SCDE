@@ -83,7 +83,7 @@ if __name__ == '__main__':
     config.model_save_path = os.path.join(config.root_path, config.model_save_path)
     config.sample_path = os.path.join(config.root_path, config.sample_path)
     config.log_file = os.path.join(config.log_path, config.flag+'.txt')
-    config.latest_path = os.path.join('latest_res', config.root_path.split('/')[-1])
+    config.latest_path = os.path.join(os.environ['HOME'], 'remote', 'latest_res', config.root_path.split('/')[-1])
     
     print(config)
     main(config)
