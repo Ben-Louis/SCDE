@@ -137,7 +137,7 @@ class Solver(object):
 
         return feat_skt_pho, feat_pho_skt
 
-    def train_AE(self, skts, phos, loss, mutual=False):
+    def train_AE(self, skts, phos, loss, mutual=True):
         ## fake samples
         feat_pho = self.E(phos, 'pho', 'map')
         feat_skt = self.E(skts, 'skt', 'map')  
@@ -162,11 +162,11 @@ class Solver(object):
         rec_loss.backward()
         self.opt_G.step()                    
         self.opt_E.step() 
-        
+
         loss['AE/loss_rec_pho'] = loss_rec_pho.item()
         loss['AE/loss_rec_skt'] = loss_rec_skt.item()
-        loss['E/l2_loss'] = l2_loss.item()
-        loss['E/angle_loss'] = angle_loss.item()
+        loss['E/l2_loss'] = l2_loss if isinstance(l2_loss, int) else l2_loss.item()
+        loss['E/angle_loss'] = angle_loss if isinstance(angle_loss, int) else angle_loss.item()
 
     def train_IR(self, skts, phos, loss):
 
@@ -205,11 +205,10 @@ class Solver(object):
         fake_phos = fake_phos.to(self.device2).detach()
 
         # train D
-        real_dis_pho = torch.mean(self.D(phos, 'pho'))
-        real_dis_skt = torch.mean(self.D(skts, 'skt'))        
-
-        fake_dis_pho = torch.mean(self.D(fake_phos, 'pho'))
-        fake_dis_skt = torch.mean(self.D(fake_skts, 'skt'))
+        real_dis_pho = self.D(phos, 'pho').mean()
+        real_dis_skt = self.D(skts, 'skt').mean()
+        fake_dis_pho = self.D(fake_phos, 'pho').mean()
+        fake_dis_skt = self.D(fake_skts, 'skt').mean()
 
         # gradient panelty
         alpha = torch.rand(phos.size(0), 1, 1, 1).to(self.device2)
@@ -322,7 +321,6 @@ class Solver(object):
                 if (i+1) % self.config.d_train_repeat == 0:
                     self.train_gen(skts, phos, loss, self.config.gen_triplet)
 
-
                 
                 # Print out training information.
                 if (i+1) % self.config.log_step == 0:
@@ -332,6 +330,22 @@ class Solver(object):
                     for tag, value in loss.items():
                         log += ", {}: {:.4f}".format(tag, value)
                     print(log)  
+
+                    # write loss into log file
+                    with open(self.config.log_file, 'a+') as f:
+                        if not self.has_logged:
+                            f.write('epoch')
+                            f.write(';')
+                            for key in loss.keys():
+                                f.write(key)
+                                f.write(';')
+                            f.write('\n')
+
+                        f.write(str(e+1))
+                        f.write(';')
+                        for l in loss.values():
+                            f.write('{:.4f}'.format(l))
+                            f.write(';')
                 
 
             # Translate fixed images for debugging.
@@ -347,12 +361,6 @@ class Solver(object):
                 self.G.save_model(G_path)
                 self.D.save_model(D_path)
                 print('Saved model checkpoints into {}...'.format(self.config.model_save_path))
-                E_path = os.path.join(self.config.latest_path, 'latest-E.ckpt')
-                G_path = os.path.join(self.config.latest_path, 'latest-G.ckpt')
-                D_path = os.path.join(self.config.latest_path, 'latest-D.ckpt')
-                self.E.save_model(E_path)
-                self.G.save_model(G_path)
-                self.D.save_model(D_path)
 
 
             # Decay learning rates.
