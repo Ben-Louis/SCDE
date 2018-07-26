@@ -19,10 +19,11 @@ class Solver(object):
 
         self.use_cuda = torch.cuda.is_available()
         if self.use_cuda:
-            self.device = torch.device("cuda:1")
-            self.device2 = torch.device("cuda:0")
+            self.device = torch.device("cuda:0")
             if self.config.image_size == 64:
                 self.device2 = self.device
+            else:
+                self.device2 = torch.device("cuda:1")
         else:
             self.device = torch.device("cpu")
             exit(0)
@@ -31,6 +32,8 @@ class Solver(object):
         self.triplet_loss = TripletLoss(delta=self.config.margin)
 
         self.build()
+
+        self.has_logged = False
 
     def build(self):
 
@@ -106,8 +109,8 @@ class Solver(object):
             return loss.mean()
 
     def cons_loss(self, z1, z2):
-        l2_loss = (z1-z2).sum(dim=1).mean() if self.config.ablation_const_l2 else 0
-        if self.config.alation_const_angle:
+        l2_loss = (z1-z2).pow(2).sum(dim=1).mean() if self.config.ablation_const_l2 else 0
+        if self.config.ablation_const_angle:
             angle = torch.sum(z1*z2, dim=1) / (torch.norm(z1, p=2, dim=1) * torch.norm(z2, p=2, dim=1))
             angle_loss = 1 - (angle).mean()
         else:
@@ -163,10 +166,10 @@ class Solver(object):
         self.opt_G.step()                    
         self.opt_E.step() 
 
-        loss['AE/loss_rec_pho'] = loss_rec_pho.item()
-        loss['AE/loss_rec_skt'] = loss_rec_skt.item()
-        loss['E/l2_loss'] = l2_loss if isinstance(l2_loss, int) else l2_loss.item()
-        loss['E/angle_loss'] = angle_loss if isinstance(angle_loss, int) else angle_loss.item()
+        loss['L_recon[pho]'] = loss_rec_pho.item()
+        loss['L_recon[skt]'] = loss_rec_skt.item()
+        loss['L_const(l2)'] = l2_loss if isinstance(l2_loss, int) else l2_loss.item()
+        loss['L_const(angle)'] = angle_loss if isinstance(angle_loss, int) else angle_loss.item()
 
     def train_IR(self, skts, phos, loss):
 
@@ -185,7 +188,7 @@ class Solver(object):
         e_loss.backward()
         self.opt_E.step() 
 
-        loss['E/triplet_loss'] = triplet_loss.item()        
+        loss['L_tri'] = triplet_loss.item()
 
 
     def train_dis(self, skts, phos, loss):
@@ -227,12 +230,12 @@ class Solver(object):
         self.opt_D.step()  
 
         # logging  
-        loss['D/loss_real_pho'] = real_dis_pho.item()
-        loss['D/loss_real_skt'] = real_dis_skt.item()
-        loss['D/loss_fake_pho'] = fake_dis_pho.item()
-        loss['D/loss_fake_skt'] = fake_dis_skt.item()
-        loss['D/loss_gp_pho'] = gp_pho.item()
-        loss['D/loss_gp_skt'] = gp_skt.item()   
+        loss['L_gan(dis/real)[pho]'] = real_dis_pho.item()
+        loss['L_gan(dis/real)[skt]'] = real_dis_skt.item()
+        loss['L_gan(dis/fake)[pho]'] = fake_dis_pho.item()
+        loss['L_gan(dis/real)[skt]'] = fake_dis_skt.item()
+        loss['L_gan(gp)[pho]'] = gp_pho.item()
+        loss['L_gan(gp)[skt]'] = gp_skt.item()
 
     def train_gen(self, skts, phos, loss, triplet=False):
         
@@ -272,8 +275,8 @@ class Solver(object):
             self.opt_E.step()   
 
         # log
-        loss['AE/loss_fake_pho'] = fake_dis_pho.item()
-        loss['AE/loss_fake_skt'] = fake_dis_skt.item() 
+        loss['L_gan(gen/fake)[pho]'] = fake_dis_pho.item()
+        loss['L_gan(gen/fake)[skt]'] = fake_dis_skt.item()
         if triplet:  
             loss['AE/loss_triplet_gen'] = triplet_loss.item()
 
@@ -289,6 +292,7 @@ class Solver(object):
 
         if self.config.pretrained_model is None:
             start_epoch = 0
+            os.remove(self.config.log_file)
         else:
             self.load_pretrained_model()
             start_epoch = eval(self.config.pretrained_model)
@@ -340,6 +344,7 @@ class Solver(object):
                                 f.write(key)
                                 f.write(';')
                             f.write('\n')
+                            self.haslogged = True
 
                         f.write(str(e+1))
                         f.write(';')

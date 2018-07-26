@@ -18,8 +18,6 @@ def main(config):
     os.system('cp -r models %s/'%config.model_save_path)
     if not os.path.exists(config.sample_path):
         os.makedirs(config.sample_path)
-    if not os.path.exists(config.result_path):
-        os.makedirs(config.result_path)
     if not os.path.exists(config.latest_path):
         os.makedirs(config.latest_path)        
 
@@ -46,8 +44,8 @@ if __name__ == '__main__':
     parser.add_argument('--margin', type=float, default=0.3)
     parser.add_argument('--lambda_rec', type=float, default=10)
     parser.add_argument('--lambda_gp', type=float, default=10)
-    parser.add_argument('--lambda_constrain', type=float, default=1)
-    parser.add_argument('--lambda_triplet', type=float, default=1)
+    parser.add_argument('--lambda_constrain', type=float, default=2)
+    parser.add_argument('--lambda_triplet', type=float, default=0)
     parser.add_argument('--gen_triplet', type=str2bool, default=False)
 
     # ablation stud for rebuttal
@@ -63,7 +61,7 @@ if __name__ == '__main__':
 
     # training procedure
     parser.add_argument('--d_train_repeat', type=int, default=5)
-    parser.add_argument('--num_iters', type=int, default=500)
+    parser.add_argument('--num_iters', type=int, default=1000)
     parser.add_argument('--num_epochs', type=int, default=20)
     parser.add_argument('--num_epochs_decay', type=int, default=10)
     parser.add_argument('--pretrained_model', type=str, default=None)
@@ -84,7 +82,6 @@ if __name__ == '__main__':
     config.log_path = os.path.join(config.root_path, config.log_path)
     config.model_save_path = os.path.join(config.root_path, config.model_save_path)
     config.sample_path = os.path.join(config.root_path, config.sample_path)
-    config.result_path = os.path.join(config.root_path, config.result_path)
     config.log_file = os.path.join(config.log_path, config.flag+'.txt')
     config.latest_path = os.path.join('latest_res', config.root_path.split('/')[-1])
     
