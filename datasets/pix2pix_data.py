@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 
 class Pix2PixData(Dataset):
-    def __init__(self, obj='shoes', mode='train', image_size=128, random=False, part=False):
+    def __init__(self, data_root, obj='shoes', mode='train', image_size=128, random=False, part=False):
         
         self.image_size = image_size
         self.threshold = 0.75
@@ -17,7 +17,8 @@ class Pix2PixData(Dataset):
         
         # dir
         assert obj in ['shoes', 'handbags']
-        root = os.path.join(os.environ['HOME'], 'dataset', 'pix2pix', 'datasets', 'edges2'+obj)
+        #root = os.path.join(os.environ['HOME'], 'dataset', 'pix2pix', 'datasets', 'edges2'+obj)
+        root = data_root
         train_dir = os.path.join(root, 'train')
         valid_dir = os.path.join(root, 'val')
     
@@ -50,6 +51,7 @@ class Pix2PixData(Dataset):
     
     def __getitem__(self, index):
         img = Image.open(self.files[index])
+
         img = self.toTensor(img)
         
         skt, pho = img[:,:,:self.image_size], img[:,:,self.image_size:]
@@ -73,9 +75,5 @@ class Pix2PixData(Dataset):
         
         return skt, pho
 
-def Pix2PixLoader(obj='shoes', mode='train', batch_size=16, image_size=128, num_workers=1, shuffle=True, **kwargs):
-    data = Pix2PixData(obj, mode, image_size, **kwargs)
-    loader = DataLoader(data, batch_size=batch_size, num_workers=num_workers, shuffle=shuffle)
-    return loader
-
-
+    def get_loader(self, **kwargs):
+        return DataLoader(self, **kwargs)
