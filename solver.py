@@ -1,36 +1,32 @@
 import time
 import torch
-from torch.autograd import Variable
-import numpy as np
 from torchvision.utils import save_image
 from models import *
-from datasets.pix2pix_data import Pix2PixLoader
+from datasets.pix2pix_data import Pix2PixData
 import torch.nn.functional as F
 import os
-import cv2
 
 class Solver(object):
 
     def __init__(self, config):
         self.config = config
-        self.data_loader = Pix2PixLoader(obj = config.obj, 
-                                         image_size = config.image_size, 
-                                         batch_size = config.batch_size,
-                                         num_workers = config.num_workers,
-                                         random = config.random,
-                                         part = self.config.part)
-        print(len(self.data_loader.dataset))
+
+        # construct data loader
+        if config.obj.lower() in ['shoes', 'handbags']:
+            self.dataset = Pix2PixData(config.data_root, obj=config.obj, image_size=config.image_size, random=config.random)
+            self.data_loader = self.dataset.get_loader(batch_size=config.batch_size, num_workers=config.num_workers, shuffle=True)
+        print(len(self.dataset))
 
         self.use_cuda = torch.cuda.is_available()
         if self.use_cuda:
-            self.device = torch.device("cuda:1") 
+            self.device = torch.device("cuda:1")
             self.device2 = torch.device("cuda:0")
             if self.config.image_size == 64:
                 self.device2 = self.device
         else:
-            self.device = torch.device("cpu")  
+            self.device = torch.device("cpu")
             exit(0)
-        self.cpu_device = torch.device("cpu")  
+        self.cpu_device = torch.device("cpu")
 
         self.triplet_loss = TripletLoss(delta=self.config.margin)
 
@@ -310,7 +306,6 @@ class Solver(object):
                 phos = phos.to(self.device)
                 skts = skts.to(self.device)
                 loss = {}
-                #torch.cuda.empty_cache()
             
 
                 # train auto-encoder
