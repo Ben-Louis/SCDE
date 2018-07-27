@@ -176,20 +176,21 @@ class Solver(object):
 
         # using photos in the same batch as neg samples
         phos_pos = phos
-        phos_neg = phos[self.inv_idx]
+        #phos_neg = phos[self.inv_idx]
 
         feat_ppho = self.E(phos_pos, 'pho', 'tpl')
-        feat_npho = self.E(phos_neg, 'pho', 'tpl')
+        #feat_npho = self.E(phos_neg, 'pho', 'tpl')
         feat_skt = self.E(skts, 'skt', 'tpl')
 
-        triplet_loss = self.triplet_loss(feat_skt, feat_ppho, feat_npho)
-        e_loss = triplet_loss * self.config.lambda_triplet
+        max_loss, mean_loss = self.triplet_loss(feat_skt, feat_ppho, 0)
+        e_loss = sum([eval(f+'_loss') for f in self.config.ablation_tri]) * self.config.lambda_triplet
 
         self.reset_grad()
         e_loss.backward()
         self.opt_E.step() 
 
-        loss['L_tri'] = triplet_loss.item()
+        loss['L_tri(max)'] = max_loss.item()
+        loss['L_tri(mean)'] = mean_loss.item()
 
 
     def train_dis(self, skts, phos, loss):
@@ -320,12 +321,10 @@ class Solver(object):
                 # train discriminator
                 self.train_dis(skts, phos, loss)
 
-                if self.config.gen_triplet:
-                    # train triplet loss
-                    self.train_IR(skts, phos, loss)
+                self.train_IR(skts, phos, loss)
 
                 if (i+1) % self.config.d_train_repeat == 0:
-                    self.train_gen(skts, phos, loss, self.config.gen_triplet)
+                    self.train_gen(skts, phos, loss)
 
                 
                 # Print out training information.
@@ -335,6 +334,7 @@ class Solver(object):
                     log = "Elapsed [{}], Epoch [{}/{}], Iteration [{}/{}]\n".format(et, e+1, num_epochs, i+1, num_iters)
                     log += 'L_recon: ' + '[pho]:{:.4f}, [skt]:{:.4f}\n'.format(loss['L_recon[pho]'], loss['L_recon[skt]'])
                     log += 'L_const: ' + '[l2]:{:.4f}, [angle]:{:.4f}\n'.format(loss['L_const(l2)'], loss['L_const(angle)'])
+                    log += 'L_tri: ' + '[max]:{:.4f}, [mean]:{:.4f}\n'.format(loss['L_tri(max)'], loss['L_tri(mean)'])
                     log += 'L_gan [pho]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
                         loss['L_gan(dis/real)[pho]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[pho]'],  loss['L_gan(gp)[pho]'])
                     log += 'L_gan [skt]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(

@@ -52,6 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('--ablation_recon_kl', type=str2bool, default=True)
     parser.add_argument('--ablation_const_l2', type=str2bool, default=True)
     parser.add_argument('--ablation_const_angle', type=str2bool, default=True)
+    parser.add_argument('--ablation_tri', type=str, default='max,mean')
 
     # optimizor
     parser.add_argument('--g_lr', type=float, default=0.0001)
