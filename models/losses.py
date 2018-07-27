@@ -32,7 +32,7 @@ class TripletLoss(nn.Module):
 
         dists = dists.masked_select(idx).view(n, -1)
 
-        max_loss = dists.max(dim=1)[0]
-        mean_loss = dists.mean(dim=1)
+        max_loss = dists.max(dim=1)[0].mean()
+        mean_loss = dists.mean()
 
         return max_loss, mean_loss
