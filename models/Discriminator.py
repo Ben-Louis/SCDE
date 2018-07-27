@@ -1,6 +1,6 @@
 from .utils import *
 
-class Discriminator(nn.Module):
+class Discriminator(Module):
     def __init__(self, conv_dim=32, image_size=128, in_dim=1):
         super(Discriminator, self).__init__()
         
