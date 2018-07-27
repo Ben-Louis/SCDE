@@ -19,11 +19,11 @@ class TripletLoss(nn.Module):
         #pn = F.normalize(pn)
         n = s.size(0)
 
-        s = s.view(n, -1).unsqueeze(1).repeat(1, n, 1)
-        pp = pp.view(n, -1).unsqueeze(0).repeat(n, 1, 1)
+        s = F.normalize(s.view(n, -1)).unsqueeze(1).repeat(1, n, 1)
+        pp = F.normalize(pp.view(n, -1)).unsqueeze(0).repeat(n, 1, 1)
 
         dists = (s - pp).pow(2).sum(dim=2)
-        dists = dists - dists.diag() + self.delta
+        dists = -(dists - dists.diag()) + self.delta
         dists.clamp_(min=0.0)
 
         idx = torch.ones_like(dists)

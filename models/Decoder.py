@@ -7,7 +7,7 @@ from .utils import *
 
 
 class Decoder(Module):
-    def __init__(self, conv_dim, image_size, out_dim, large=True):
+    def __init__(self, conv_dim, image_size, out_dim, large=False):
         super(Decoder, self).__init__()
 
 

@@ -4,7 +4,7 @@ from .utils import *
 
 class Encoder(Module):
 
-    def __init__(self, conv_dim=64, image_size=128, in_dim=3, large=True):
+    def __init__(self, conv_dim=64, image_size=128, in_dim=3, large=False):
         super(Encoder, self).__init__()
 
         layers = []

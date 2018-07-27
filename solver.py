@@ -109,7 +109,7 @@ class Solver(object):
             return loss.mean()
 
     def cons_loss(self, z1, z2):
-        l2_loss = (z1-z2).pow(2).sum(dim=1).mean()
+        l2_loss = (z1-z2).pow(2).mean()
         if not self.config.ablation_const_l2:
             l2_loss = l2_loss.detach()
         angle = torch.sum(z1*z2, dim=1) / (torch.norm(z1, p=2, dim=1) * torch.norm(z2, p=2, dim=1))
@@ -307,6 +307,8 @@ class Solver(object):
                 # sample_data
                 try:
                     skts, phos = next(pair_iter)
+                    if skts.size(0) == 1:
+                        raise ValueError
                 except:
                     pair_iter = iter(self.data_loader)
                     skts, phos = next(pair_iter)            
@@ -317,14 +319,16 @@ class Solver(object):
             
 
                 # train auto-encoder
-                self.train_AE(skts, phos, loss, mutual=True)
+                #self.train_AE(skts, phos, loss, mutual=True)
 
                 # train discriminator
                 self.train_dis(skts, phos, loss)
 
-                self.train_IR(skts, phos, loss)
+                #self.train_IR(skts, phos, loss)
 
                 if (i+1) % self.config.d_train_repeat == 0:
+                    self.train_AE(skts, phos, loss, mutual=True)
+                    self.train_IR(skts, phos, loss)
                     self.train_gen(skts, phos, loss)
 
                 
@@ -339,7 +343,7 @@ class Solver(object):
                     log += 'L_gan [pho]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
                         loss['L_gan(dis/real)[pho]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[pho]'],  loss['L_gan(gp)[pho]'])
                     log += 'L_gan [skt]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
-                        loss['L_gan(dis/real)[skt]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[skt]'],  loss['L_gan(gp)[skt]'])
+                        loss['L_gan(dis/real)[skt]'], loss['L_gan(dis/fake)[skt]'], loss['L_gan(gen/fake)[skt]'],  loss['L_gan(gp)[skt]'])
 
                     print(log)  
 
