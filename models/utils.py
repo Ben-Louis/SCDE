@@ -159,3 +159,50 @@ class model_asmb:
     def to(self, device):
         self.pho_net = self.pho_net.to(device)
         self.skt_net = self.skt_net.to(device)
+
+
+class AttentionLayer(Module):
+    def __init__(self, conv_dim, mod_dim=0):
+        super(AttentionLayer, self).__init__()
+
+        if mod_dim > 0:
+            self.mod_dim = mod_dim
+        else:
+            self.mod_dim = conv_dim
+
+        self.conv1 = nn.Conv2d(conv_dim, conv_dim//8, kernel_size=1, stride=1, padding=0)
+        self.conv2 = nn.Conv2d(conv_dim, conv_dim//8, kernel_size=1, stride=1, padding=0)
+        self.conv3 = nn.Conv2d(conv_dim, mod_dim, kernel_size=1, stride=1, padding=0)
+
+        self.alpha = Parameter(torch.FloatTensor([0.0]))
+        self.beta = Parameter(torch.FloatTensor([1.0]))
+
+    def to(self, device):
+        self.conv1.to(device)
+        self.conv2.to(device)
+        self.conv3.to(device)
+        self.alpha = self.alpha.to(device)
+        self.alpha.requires_grad_(True)
+        self.beta = self.beta.to(device)
+        self.beta.requires_grad_(True)
+
+    def forward(self, x):
+        chn = x.size(1)
+        f, g = self.conv1(x), self.conv2(x)
+        f = f.view(f.size(0), f.size(1), -1)
+        g = g.view(g.size(0), g.size(1), -1)
+
+        w = torch.matmul(torch.transpose(f,1,2),g)
+
+        # normalize
+        w = F.softmax(w, dim=1)
+
+        # activation
+        h = self.conv3(x)
+        h = h.view(x.size(0), self.mod_dim, -1)
+        x_mod, x_reserve = x[:,:self.mod_dim,:,:], x[:,self.mod_dim:,:,:]
+        h = torch.matmul(h, w).view(x_mod.shape)
+
+        out_mod = self.alpha * h + self.beta * x_mod
+
+        return torch.cat([out_mod, x_reserve], dim=1)        

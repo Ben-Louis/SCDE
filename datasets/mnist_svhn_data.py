@@ -17,7 +17,7 @@ def merge_list(l):
 
 
 class MnistSvhnData(Dataset):
-    def __init__(self, data_root):
+    def __init__(self, data_root, random=True):
         
         mnist_root = os.path.join(data_root, 'mnist')
         svhn_root = os.path.join(data_root, 'svhn')
@@ -30,14 +30,25 @@ class MnistSvhnData(Dataset):
         self.coord = merge_list(self.coord)
 
         self.to_tensor = transforms.ToTensor()
+        self.random = random
+
         
     def __len__(self):
         return len(self.coord)
     
     def __getitem__(self, index):
         idxm, idxs = self.coord[index]
-        imgm = self.to_tensor(self.mnist[idxm][0])
-        imgs = self.to_tensor(self.svhn[idxs][0].resize((28,28)))
+        imgm = self.to_tensor(self.mnist[idxm][0]).unsqueeze(0).repeat(3,1,1)
+        if self.random:
+            w = imgm.size(1)
+            color = np.random.randint(2, size=(3,1))
+            while np.sum(color) == 0:
+                color = np.random.randint(2, size=(3,1))
+            color = torch.FloatTensor(color)
+        else:
+            color = torch.ones(3,1)
+        imgm = color.matmul(imgm.view(1,-1)).view(3, w, w)
+        imgs = self.to_tensor(self.svhn[idxs][0].resize((28,28))) * 2 - 1
         
         return imgm, imgs
 

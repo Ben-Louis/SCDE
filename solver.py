@@ -1,8 +1,8 @@
 import time
 import torch
 from torchvision.utils import save_image
-from models import *
-from datasets.pix2pix_data import Pix2PixData
+from models import modelset, TripletLoss
+from datasets import *
 import torch.nn.functional as F
 import os
 
@@ -13,14 +13,17 @@ class Solver(object):
 
         # construct data loader
         if config.obj.lower() in ['shoes', 'handbags']:
-            self.dataset = Pix2PixData(config.data_root, obj=config.obj, image_size=config.image_size, random=config.random)
-            self.data_loader = self.dataset.get_loader(batch_size=config.batch_size, num_workers=config.num_workers, shuffle=True)
+            self.dataset = Pix2PixData(config.data_root, obj=config.obj, image_size=config.image_size, random=config.random)            
+        elif config.obj.lower() == 'mnist':
+            self.dataset = MnistSvhnData(config.data_root, random=config.random)
+        self.data_loader = self.dataset.get_loader(batch_size=config.batch_size, num_workers=config.num_workers, shuffle=True)
+
         print(len(self.dataset))
 
         self.use_cuda = torch.cuda.is_available()
         if self.use_cuda:
             self.device = torch.device("cuda:0")
-            if self.config.image_size == 64:
+            if self.config.image_size == 64 and config.obj=='mnist':
                 self.device2 = self.device
             else:
                 self.device2 = torch.device("cuda:1")
@@ -37,10 +40,12 @@ class Solver(object):
 
     def build(self):
 
+        flag = 'mnist' if self.config.obj == 'mnist' else 'pix2pix'
+
         # networks
-        self.E = Encoder(self.config.conv_dim, image_size=self.config.image_size)
-        self.G = Decoder(self.config.conv_dim, image_size=self.config.image_size)
-        self.D = Discriminator(self.config.conv_dim, image_size=self.config.image_size)
+        self.E = modelset[flag]['encoder'](self.config.conv_dim, image_size=self.config.image_size)
+        self.G = modelset[flag]['decoder'](self.config.conv_dim, image_size=self.config.image_size)
+        self.D = modelset[flag]['discriminator'](self.config.conv_dim, image_size=self.config.image_size)
         self.E.to(self.device)
         self.G.to(self.device)
         self.D.to(self.device2)
