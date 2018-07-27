@@ -182,8 +182,9 @@ class Solver(object):
         #feat_npho = self.E(phos_neg, 'pho', 'tpl')
         feat_skt = self.E(skts, 'skt', 'tpl')
 
-        max_loss, mean_loss = self.triplet_loss(feat_skt[0], feat_ppho[0], 0)
-        e_loss = sum([eval(f+'_loss') for f in self.config.ablation_tri]) * self.config.lambda_triplet
+        losses = {}
+        losses['max'], losses['mean'] = self.triplet_loss(feat_skt[0], feat_ppho[0], 0)
+        e_loss = sum([losses[f] for f in self.config.ablation_tri]) * self.config.lambda_triplet
 
         self.reset_grad()
         e_loss.backward()
