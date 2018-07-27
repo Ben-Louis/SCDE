@@ -13,7 +13,7 @@ class Decoder(Module):
 
         # in2
         layers = []
-        curr_dim = conv_dim * 8
+        curr_dim = conv_dim * 16
         img_size = 1
 
         self.fc = Sequential(
@@ -31,8 +31,8 @@ class Decoder(Module):
         self.deconv1 = Sequential(*layers)
 
         self.fushion1 = Sequential(
-            AttentionLayer(curr_dim+32, curr_dim),
-            ConvBlock(curr_dim+32, curr_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            AttentionLayer(curr_dim+conv_dim*8, curr_dim),
+            ConvBlock(curr_dim+conv_dim*8, curr_dim, kernel_size=1, stride=1, padding=0, bias=False),
             ResidualBlock(curr_dim, curr_dim),
             ResidualBlock(curr_dim, curr_dim),
             nn.ReLU(True))
@@ -43,8 +43,8 @@ class Decoder(Module):
         curr_dim = conv_dim
 
         self.fushion2 = Sequential(
-            AttentionLayer(curr_dim+32, curr_dim),
-            ConvBlock(curr_dim+32, curr_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            AttentionLayer(curr_dim+conv_dim*8, curr_dim),
+            ConvBlock(curr_dim+conv_dim*8, curr_dim, kernel_size=1, stride=1, padding=0, bias=False),
             ResidualBlock(curr_dim, curr_dim),
             ResidualBlock(curr_dim, curr_dim),
             nn.ReLU(True))

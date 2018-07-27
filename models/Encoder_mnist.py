@@ -7,6 +7,8 @@ class Encoder(Module):
     def __init__(self, conv_dim=64, image_size=128, in_dim=3, large=False):
         super(Encoder, self).__init__()
 
+        self.conv_dim = conv_dim
+
         layers = []
         layers.append(ConvBlock(in_dim, conv_dim, kernel_size=5, stride=1, padding=2, bias=False))
         layers.append(ConvBlock(conv_dim, conv_dim*2, kernel_size=4, stride=2, padding=1, bias=False))
@@ -23,7 +25,7 @@ class Encoder(Module):
             ResidualBlock(curr_dim*2, curr_dim*2),
             nn.LeakyReLU(0.01, True),
             ConvBlock(curr_dim*2, curr_dim*4, kernel_size=3, stride=2, padding=1, bias=False),
-            ConvBlock(curr_dim*4, curr_dim*4, gnorm=False, lrelu=False, kernel_size=4, stride=1, padding=0, bias=False),)
+            ConvBlock(curr_dim*4, curr_dim*8, gnorm=False, lrelu=False, kernel_size=4, stride=1, padding=0, bias=False),)
 
 
         # Official init from torch repo.
@@ -39,8 +41,8 @@ class Encoder(Module):
     def forward(self, x):
         h = self.main(x)
         out = self.out(h).squeeze(3).squeeze(2)
-        z1 = out[:,:32]
-        z2 = out[:,32:]
+        z1 = out[:,:self.conv_dim*8]
+        z2 = out[:,self.conv_dim*8:]
         return z1, z2
 
 class Encoder_asmb(model_asmb):
