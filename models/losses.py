@@ -68,6 +68,7 @@ class SDLLoss:
         z = (z-mean)/var
 
         Cmini = z.t().mm(z) / z.size(0)
+        #print(Cmini.shape, self.Caccu.shape)
         self.Caccu = self.alpha * self.Caccu.detach() + Cmini
         self.c = self.alpha * self.c + 1
         Cappx = self.Caccu / self.c

@@ -207,11 +207,12 @@ class Solver(object):
         phos_pos = phos
         #phos_neg = phos[self.inv_idx]
 
-        feat_ppho = self.E(phos_pos, 'pho', 'tpl')[0]
+        feat_ppho = self.E(phos_pos, 'pho', 'tpl')
         #feat_npho = self.E(phos_neg, 'pho', 'tpl')
-        feat_skt = self.E(skts, 'skt', 'tpl')[0]
+        feat_skt = self.E(skts, 'skt', 'tpl')
 
-        sdl_loss = self.sdl(feat_skt.detach(), feat_ppho)
+        sdl_loss = self.sdl(feat_skt[0].detach(), feat_skt[1])
+        sdl_loss += self.sdl(feat_ppho[0].detach(), feat_ppho[1])
         e_loss = sdl_loss * self.config.lambda_triplet
 
         self.reset_grad()
