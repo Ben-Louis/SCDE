@@ -24,4 +24,4 @@ modelset = {
 }
 
 
-from .losses import TripletLoss
+from .losses import *

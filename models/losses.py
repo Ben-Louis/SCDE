@@ -36,3 +36,40 @@ class TripletLoss(nn.Module):
         mean_loss = dists.mean()
 
         return max_loss, mean_loss
+
+class SDLLoss:
+    def __init__(self, dim1, dim2, alpha=0.5, S=None):
+        super(SDLLayer, self).__init__()
+        if S is not None:
+            self.S = S
+        else:
+            S = torch.ones((dim1+dim2, dim1+dim2))
+            S[:dim1, :dim1] = 0
+            S[dim1:, dim1:] = 0
+            self.S = S
+        self.S.requires_grad_(False)
+        self.c = 0
+        self.alpha = alpha
+        self.Caccu = torch.zeros((dim, dim))
+        self.Caccu.requires_grad_(False)
+        #self.low_bound = torch.FloatTensor([50])
+
+    def to(self, device):
+        print('SDL at device!')
+        self.S = self.S.to(device)
+        self.Caccu = self.Caccu.to(device)
+        #self.low_bound = self.low_bound.to(device)
+
+    def __call__(self, z1, z2):
+        z = torch.cat([z1, z2], dim=1)
+        # shape of z: (B, k)
+        mean = torch.mean(z, dim=0)
+        var = torch.var(z, dim=0) + 1e-8
+        z = (z-mean)/var
+
+        Cmini = z.t().mm(z) / z.size(0)
+        self.Caccu = self.alpha * self.Caccu.detach() + Cmini
+        self.c = self.alpha * self.c + 1
+        Cappx = self.Caccu / self.c
+        loss = torch.sum(torch.abs(Cappx*self.S))
+        return loss  

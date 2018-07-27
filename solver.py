@@ -1,7 +1,7 @@
 import time
 import torch
 from torchvision.utils import save_image
-from models import modelset, TripletLoss
+from models import modelset, TripletLoss, SDLLoss
 from datasets import *
 import torch.nn.functional as F
 import os
@@ -57,6 +57,9 @@ class Solver(object):
 
         # inverse tensor
         self.inv_idx = torch.arange(self.config.batch_size-1, -1, -1).long().to(self.device)
+        if self.config.obj == 'mnist':
+            self.sdl = SDLLoss(self.config.conv_dim, self.config.conv_dim*15, self.config.sdl_alpha)
+            self.sdl.to(device)
 
 
     def reset_grad(self):
@@ -198,6 +201,26 @@ class Solver(object):
         loss['L_tri(max)'] = losses['max'].item()
         loss['L_tri(mean)'] = losses['mean'].item()
 
+    def train_SDL(self, skts, phos, loss):
+
+        # using photos in the same batch as neg samples
+        phos_pos = phos
+        #phos_neg = phos[self.inv_idx]
+
+        feat_ppho = self.E(phos_pos, 'pho', 'tpl')[0]
+        #feat_npho = self.E(phos_neg, 'pho', 'tpl')
+        feat_skt = self.E(skts, 'skt', 'tpl')[0]
+
+        sdl_loss = self.sdl(feat_skt, feat_ppho)
+        e_loss = sdl_loss * self.config.lambda_triplet
+
+        self.reset_grad()
+        e_loss.backward()
+        self.opt_E.step() 
+
+        loss['L_tri(max)'] = sdl_loss.item()
+        loss['L_tri(mean)'] = 0
+
 
     def train_dis(self, skts, phos, loss):
 
@@ -333,7 +356,10 @@ class Solver(object):
 
                 if (i+1) % self.config.d_train_repeat == 0:
                     self.train_AE(skts, phos, loss, mutual=True)
-                    self.train_IR(skts, phos, loss)
+                    if self.config.obj == 'mnist':
+                        self.train_SDL(skts, phos, loss)
+                    else:
+                        self.train_IR(skts, phos, loss)
                     self.train_gen(skts, phos, loss)
 
                 
