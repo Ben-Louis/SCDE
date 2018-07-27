@@ -190,8 +190,8 @@ class Solver(object):
         e_loss.backward()
         self.opt_E.step() 
 
-        loss['L_tri(max)'] = max_loss.item()
-        loss['L_tri(mean)'] = mean_loss.item()
+        loss['L_tri(max)'] = losses['max'].item()
+        loss['L_tri(mean)'] = losses['mean'].item()
 
 
     def train_dis(self, skts, phos, loss):
