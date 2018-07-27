@@ -59,7 +59,7 @@ class Solver(object):
         self.inv_idx = torch.arange(self.config.batch_size-1, -1, -1).long().to(self.device)
         if self.config.obj == 'mnist':
             self.sdl = SDLLoss(self.config.conv_dim, self.config.conv_dim*15, self.config.sdl_alpha)
-            self.sdl.to(device)
+            self.sdl.to(self.device)
 
 
     def reset_grad(self):
@@ -211,7 +211,7 @@ class Solver(object):
         #feat_npho = self.E(phos_neg, 'pho', 'tpl')
         feat_skt = self.E(skts, 'skt', 'tpl')[0]
 
-        sdl_loss = self.sdl(feat_skt, feat_ppho)
+        sdl_loss = self.sdl(feat_skt.detach(), feat_ppho)
         e_loss = sdl_loss * self.config.lambda_triplet
 
         self.reset_grad()

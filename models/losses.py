@@ -39,7 +39,7 @@ class TripletLoss(nn.Module):
 
 class SDLLoss:
     def __init__(self, dim1, dim2, alpha=0.5, S=None):
-        super(SDLLayer, self).__init__()
+        super(SDLLoss, self).__init__()
         if S is not None:
             self.S = S
         else:
@@ -50,7 +50,7 @@ class SDLLoss:
         self.S.requires_grad_(False)
         self.c = 0
         self.alpha = alpha
-        self.Caccu = torch.zeros((dim, dim))
+        self.Caccu = torch.zeros((dim1+dim2, dim1+dim2))
         self.Caccu.requires_grad_(False)
         #self.low_bound = torch.FloatTensor([50])
 
