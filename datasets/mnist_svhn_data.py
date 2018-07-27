@@ -38,9 +38,9 @@ class MnistSvhnData(Dataset):
     
     def __getitem__(self, index):
         idxm, idxs = self.coord[index]
-        imgm = self.to_tensor(self.mnist[idxm][0]).unsqueeze(0).repeat(3,1,1)
+        imgm = self.to_tensor(self.mnist[idxm][0])
+        w = imgm.size(1)
         if self.random:
-            w = imgm.size(1)
             color = np.random.randint(2, size=(3,1))
             while np.sum(color) == 0:
                 color = np.random.randint(2, size=(3,1))

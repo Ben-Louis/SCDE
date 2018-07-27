@@ -38,7 +38,7 @@ class Encoder(Module):
         
     def forward(self, x):
         h = self.main(x)
-        out = self.out(h1).squeeze(3).squeeze(2)
+        out = self.out(h).squeeze(3).squeeze(2)
         z1 = out[:,:32]
         z2 = out[:,32:]
         return z1, z2

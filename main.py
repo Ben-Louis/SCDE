@@ -37,7 +37,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_size', type=int, default=128)
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--num_workers', type=int, default=4)
-    parser.add_argument('--random', type=str2bool, default=False)
+    parser.add_argument('--random', type=str2bool, default=True)
 
     # model
     parser.add_argument('--conv_dim', type=int, default=64)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_rec', type=float, default=10)
     parser.add_argument('--lambda_gp', type=float, default=10)
     parser.add_argument('--lambda_constrain', type=float, default=2)
-    parser.add_argument('--lambda_triplet', type=float, default=0)
+    parser.add_argument('--lambda_triplet', type=float, default=2)
     parser.add_argument('--gen_triplet', type=str2bool, default=False)
 
     # ablation stud for rebuttal
@@ -85,7 +85,10 @@ if __name__ == '__main__':
     config.model_save_path = os.path.join(config.root_path, config.model_save_path)
     config.sample_path = os.path.join(config.root_path, config.sample_path)
     config.log_file = os.path.join(config.log_path, config.flag+'.txt')
-    config.latest_path = os.path.join(os.environ['HOME'], 'remote', 'latest_res', config.root_path.split('/')[-1])
+    try:
+        config.latest_path = os.path.join(os.environ['HOME'], 'remote', 'latest_res', config.root_path.split('/')[-1])
+    except:
+        config.latest_path = 'latest'
     
     print(config)
     main(config)

@@ -23,7 +23,7 @@ class Solver(object):
         self.use_cuda = torch.cuda.is_available()
         if self.use_cuda:
             self.device = torch.device("cuda:0")
-            if self.config.image_size == 64 and config.obj=='mnist':
+            if self.config.image_size == 64 or config.obj=='mnist':
                 self.device2 = self.device
             else:
                 self.device2 = torch.device("cuda:1")

@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from torch.nn import Parameter
+import torch.nn.functional as F
 
 class Module(nn.Module):
     def load_state_dict(self, state_dict, strict=False):
