@@ -41,8 +41,8 @@ class Encoder(Module):
     def forward(self, x):
         h = self.main(x)
         out = self.out(h).squeeze(3).squeeze(2)
-        z1 = out[:,:self.conv_dim*8]
-        z2 = out[:,self.conv_dim*8:]
+        z1 = out[:,:self.conv_dim]
+        z2 = out[:,self.conv_dim:]
         return z1, z2
 
 class Encoder_asmb(model_asmb):

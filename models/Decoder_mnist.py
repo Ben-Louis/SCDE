@@ -43,8 +43,8 @@ class Decoder(Module):
         curr_dim = conv_dim
 
         self.fushion2 = Sequential(
-            AttentionLayer(curr_dim+conv_dim*8, curr_dim),
-            ConvBlock(curr_dim+conv_dim*8, curr_dim, kernel_size=1, stride=1, padding=0, bias=False),
+            AttentionLayer(curr_dim+conv_dim, curr_dim),
+            ConvBlock(curr_dim+conv_dim, curr_dim, kernel_size=1, stride=1, padding=0, bias=False),
             ResidualBlock(curr_dim, curr_dim),
             ResidualBlock(curr_dim, curr_dim),
             nn.ReLU(True))
