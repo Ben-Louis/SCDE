@@ -80,6 +80,7 @@ if __name__ == '__main__':
 
     config = parser.parse_args()
 
+    config.ablation_tri = config.ablation_tri.split(',')
     config.log_path = os.path.join(config.root_path, config.log_path)
     config.model_save_path = os.path.join(config.root_path, config.model_save_path)
     config.sample_path = os.path.join(config.root_path, config.sample_path)
