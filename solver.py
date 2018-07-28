@@ -58,7 +58,7 @@ class Solver(object):
         # inverse tensor
         self.inv_idx = torch.arange(self.config.batch_size-1, -1, -1).long().to(self.device)
         if self.config.obj == 'mnist':
-            self.sdl = SDLLoss(self.config.conv_dim, self.config.conv_dim*15, self.config.sdl_alpha)
+            self.sdl = SDLLoss(self.config.conv_dim, self.config.conv_dim*7, self.config.sdl_alpha)
             self.sdl.to(self.device)
 
 
