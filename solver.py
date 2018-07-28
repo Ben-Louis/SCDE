@@ -301,7 +301,7 @@ class Solver(object):
         self.opt_E.step()   
 
         self.reset_grad()
-        cycle_loss = (recon_z0 - feat_skt_pho[0]).abs().sum() * self.config.lambda_cycle
+        cycle_loss = (recon_z0 - feat_skt_pho[0]).abs().sum(dim=1).mean() * self.config.lambda_cycle
         cycle_loss.backward()
         self.opt_G.step()
 
