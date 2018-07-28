@@ -47,6 +47,8 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_constrain', type=float, default=2)
     parser.add_argument('--lambda_triplet', type=float, default=2)
     parser.add_argument('--gen_triplet', type=str2bool, default=False)
+    parser.add_argument('--sdl_alpha', type=float, default=0.9)
+
 
     # ablation stud for rebuttal
     parser.add_argument('--ablation_recon_kl', type=str2bool, default=True)
