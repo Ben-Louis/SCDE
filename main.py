@@ -46,6 +46,7 @@ if __name__ == '__main__':
     parser.add_argument('--lambda_gp', type=float, default=10)
     parser.add_argument('--lambda_constrain', type=float, default=2)
     parser.add_argument('--lambda_triplet', type=float, default=2)
+    parser.add_argument('--lambda_regu', type=float, default=10)
     parser.add_argument('--gen_triplet', type=str2bool, default=False)
     parser.add_argument('--sdl_alpha', type=float, default=0.9)
 

@@ -166,9 +166,11 @@ class Solver(object):
         loss_rec_pho = self.rec_loss(phos, rec_phos, 'pho')
         loss_rec_skt = self.rec_loss(skts, rec_skts, 'skt')
         l2_loss, angle_loss = self.cons_loss(feat_pho[0],feat_skt[0])
+        regu_loss = feat_skt[1].abs().mean()
         
         rec_loss = self.config.lambda_rec * (loss_rec_pho*3+loss_rec_skt)\
-                   + self.config.lambda_constrain * (l2_loss+angle_loss)
+                   + self.config.lambda_constrain * (l2_loss+angle_loss)\
+                   + self.config.lambda_regu * regu_loss
 
         self.reset_grad()
         rec_loss.backward()
@@ -179,6 +181,7 @@ class Solver(object):
         loss['L_recon[skt]'] = loss_rec_skt.item()
         loss['L_const(l2)'] = l2_loss.item()
         loss['L_const(angle)'] = angle_loss.item()
+        loss['L_l2[skt]'] = regu_loss.item()
 
     def train_IR(self, skts, phos, loss):
 
