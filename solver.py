@@ -279,18 +279,10 @@ class Solver(object):
         feat_skt = self.E(skts, 'skt', 'map')   
 
         feat_skt_pho, feat_pho_skt = self.mix(feat_pho, feat_skt, shuffle=True, forg=True)     
-        if triplet:
-            feat_skt_pho = [feat_skt_pho[0].detach(), feat_skt_pho[1].detach()]
-            feat_pho_skt = [feat_pho_skt[0].detach(), feat_pho_skt[1].detach()]
         fake_phos = self.G(feat_skt_pho, 'pho')
         fake_skts = self.G(feat_pho_skt, 'skt') 
 
-        if triplet:
-            # pass through E
-            vec_pho = F.normalize(self.E(fake_phos, 'pho', 'tpl'))   
-            vec_skt = F.normalize(self.E(fake_skts, 'skt', 'tpl'))  
-
-            triplet_loss = F.normalize(vec_pho-vec_skt)
+        recon_z0 = self.E(fake_phos, 'pho')[0]
 
         # pass through D
         fake_phos = fake_phos.to(self.device2)
@@ -304,16 +296,19 @@ class Solver(object):
             gen_loss += self.lambda_triplet * triplet_loss        
 
         self.reset_grad()
-        gen_loss.backward()
+        gen_loss.backward(retain_graph=True)
         self.opt_G.step()  
-        if not triplet:                  
-            self.opt_E.step()   
+        self.opt_E.step()   
+
+        self.reset_grad()
+        cycle_loss = (recon_z0 - feat_skt_pho[0]).abs().sum() * self.config.lambda_cycle
+        cycle_loss.backward()
+        self.opt_G.step()
 
         # log
         loss['L_gan(gen/fake)[pho]'] = fake_dis_pho.item()
         loss['L_gan(gen/fake)[skt]'] = fake_dis_skt.item()
-        if triplet:  
-            loss['AE/loss_triplet_gen'] = triplet_loss.item()
+        loss['L_cycle'] = cycle_loss.item()
 
 
     def train(self):
@@ -379,7 +374,7 @@ class Solver(object):
                         loss['L_gan(dis/real)[pho]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[pho]'],  loss['L_gan(gp)[pho]'])
                     log += 'L_gan [skt]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
                         loss['L_gan(dis/real)[skt]'], loss['L_gan(dis/fake)[skt]'], loss['L_gan(gen/fake)[skt]'],  loss['L_gan(gp)[skt]'])
-                    log += 'L_regu[skt]: {:.4f}\n'.format(loss['L_l2[skt]'])                    
+                    log += 'L_regu[skt]: {:.4f}'.format(loss['L_l2[skt]'])  + 'L_cycle: {:.4f}\n'.format(loss['L_cycle'])  
 
                     print(log)  
 
