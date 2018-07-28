@@ -113,7 +113,7 @@ class Solver(object):
         elif mode == 'skt':
             eps = 1e-10
             loss = (x1-x2) * (torch.log(x1 + eps)-torch.log(x2 + eps))
-            #loss += (x1-x2).abs().mean()
+            loss += (x1-x2).abs().mean()
             return loss.mean()
 
     def cons_loss(self, z1, z2):
@@ -167,7 +167,7 @@ class Solver(object):
         loss_rec_skt = self.rec_loss(skts, rec_skts, 'skt')
         l2_loss, angle_loss = self.cons_loss(feat_pho[0],feat_skt[0])
         
-        rec_loss = self.config.lambda_rec * (loss_rec_pho+loss_rec_skt)\
+        rec_loss = self.config.lambda_rec * (loss_rec_pho*3+loss_rec_skt)\
                    + self.config.lambda_constrain * (l2_loss+angle_loss)
 
         self.reset_grad()
