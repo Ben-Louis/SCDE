@@ -301,8 +301,8 @@ class Solver(object):
         self.opt_E.step()   
 
         self.reset_grad()
-        cycle_loss = (recon_z0 - feat_skt_pho[0]).abs().sum(dim=1).mean() * self.config.lambda_cycle
-        cycle_loss.backward()
+        cycle_loss = (recon_z0 - feat_skt_pho[0]).abs().sum(dim=1).mean()
+        (self.config.lambda_cycle*cycle_loss).backward()
         self.opt_G.step()
 
         # log
@@ -374,7 +374,7 @@ class Solver(object):
                         loss['L_gan(dis/real)[pho]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[pho]'],  loss['L_gan(gp)[pho]'])
                     log += 'L_gan [skt]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
                         loss['L_gan(dis/real)[skt]'], loss['L_gan(dis/fake)[skt]'], loss['L_gan(gen/fake)[skt]'],  loss['L_gan(gp)[skt]'])
-                    log += 'L_regu[skt]: {:.4f}'.format(loss['L_l2[skt]'])  + 'L_cycle: {:.4f}\n'.format(loss['L_cycle'])  
+                    log += 'L_regu[skt]: {:.4f}, '.format(loss['L_l2[skt]'])  + 'L_cycle: {:.4f}\n'.format(loss['L_cycle'])  
 
                     print(log)  
 
