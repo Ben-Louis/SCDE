@@ -166,7 +166,7 @@ class Solver(object):
         loss_rec_pho = self.rec_loss(phos, rec_phos, 'pho')
         loss_rec_skt = self.rec_loss(skts, rec_skts, 'skt')
         l2_loss, angle_loss = self.cons_loss(feat_pho[0],feat_skt[0])
-        regu_loss = feat_skt[1].abs().mean()
+        regu_loss = feat_skt[1].abs().sum(dim=1).mean()
         
         rec_loss = self.config.lambda_rec * (loss_rec_pho*3+loss_rec_skt)\
                    + self.config.lambda_constrain * (l2_loss+angle_loss)\
@@ -214,8 +214,8 @@ class Solver(object):
         #feat_npho = self.E(phos_neg, 'pho', 'tpl')
         feat_skt = self.E(skts, 'skt', 'tpl')
 
-        sdl_loss = self.sdl(feat_skt[0].detach(), feat_skt[1])
-        sdl_loss += self.sdl(feat_ppho[0].detach(), feat_ppho[1])
+        #sdl_loss = self.sdl(feat_skt[0].detach(), feat_skt[1])
+        sdl_loss = self.sdl(feat_ppho[0].detach(), feat_ppho[1])
         e_loss = sdl_loss * self.config.lambda_triplet
 
         self.reset_grad()
@@ -379,7 +379,7 @@ class Solver(object):
                         loss['L_gan(dis/real)[pho]'], loss['L_gan(dis/fake)[pho]'], loss['L_gan(gen/fake)[pho]'],  loss['L_gan(gp)[pho]'])
                     log += 'L_gan [skt]: ' + '(dis/real):{:.4f}, (dis/fake):{:.4f}, (gen/fake):{:.4f}, (gp):{:.4f}\n'.format(
                         loss['L_gan(dis/real)[skt]'], loss['L_gan(dis/fake)[skt]'], loss['L_gan(gen/fake)[skt]'],  loss['L_gan(gp)[skt]'])
-                    log += 'L_regu[skt]: {:.4f}\n'.format(loss['L_regu[skt]'])                    
+                    log += 'L_regu[skt]: {:.4f}\n'.format(loss['L_l2[skt]'])                    
 
                     print(log)  
 
