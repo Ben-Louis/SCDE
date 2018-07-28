@@ -72,5 +72,5 @@ class SDLLoss:
         self.Caccu = self.alpha * self.Caccu.detach() + Cmini
         self.c = self.alpha * self.c + 1
         Cappx = self.Caccu / self.c
-        loss = torch.sum(torch.abs(Cappx*self.S))
+        loss = torch.mean(torch.abs(Cappx*self.S))
         return loss  
